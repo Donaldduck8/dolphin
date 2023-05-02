@@ -59,6 +59,10 @@ Nunchuk::Nunchuk() : Extension1stParty(_trans("Nunchuk"))
   // accelerometer
   groups.emplace_back(m_imu_accelerometer = new ControllerEmu::IMUAccelerometer(
                           ACCELEROMETER_GROUP, _trans("Accelerometer")));
+
+  // hotkeys
+  groups.emplace_back(m_hotkeys = new ControllerEmu::ModifySettingsButton("Custom"));
+  m_hotkeys->AddInput("Toggle Joycon Legstrap to EA Active Legstrap Conversion", true);
 }
 
 void Nunchuk::BuildDesiredExtensionState(DesiredExtensionState* target_state)
@@ -181,10 +185,17 @@ ControllerEmu::ControlGroup* Nunchuk::GetGroup(NunchukGroup group)
     return m_shake;
   case NunchukGroup::IMUAccelerometer:
     return m_imu_accelerometer;
+  case NunchukGroup::Hotkeys:
+    return m_hotkeys;
   default:
     ASSERT(false);
     return nullptr;
   }
+}
+
+bool Nunchuk::IsJoyconAndEAActiveLegstrap() {
+  m_hotkeys->UpdateState();
+  return m_hotkeys->GetSettingsModifier()[0];
 }
 
 void Nunchuk::DoState(PointerWrap& p)

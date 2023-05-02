@@ -51,6 +51,11 @@ void WiimoteEmuExtensionMotionInput::CreateNunchukLayout()
                                        GetPort(), WiimoteEmu::NunchukGroup::IMUAccelerometer)),
                     1, 0);
 
+  layout->addWidget(CreateGroupBox(tr("Hotkeys"),
+    Wiimote::GetNunchukGroup(
+      GetPort(), WiimoteEmu::NunchukGroup::Hotkeys)),
+    2, 0);
+
   m_nunchuk_box->setLayout(layout);
 }
 

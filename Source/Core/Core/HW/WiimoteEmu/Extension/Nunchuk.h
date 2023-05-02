@@ -10,6 +10,7 @@
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
 #include "Core/HW/WiimoteEmu/Dynamics.h"
 #include "Core/HW/WiimoteEmu/Extension/Extension.h"
+#include "InputCommon/ControllerEmu/ControlGroup/ModifySettingsButton.h"
 
 namespace ControllerEmu
 {
@@ -30,6 +31,7 @@ enum class NunchukGroup
   Swing,
   Shake,
   IMUAccelerometer,
+  Hotkeys,
 };
 
 class Nunchuk : public Extension1stParty
@@ -186,6 +188,9 @@ private:
   ControllerEmu::Buttons* m_buttons;
   ControllerEmu::AnalogStick* m_stick;
   ControllerEmu::IMUAccelerometer* m_imu_accelerometer;
+  ControllerEmu::ModifySettingsButton* m_hotkeys;
+
+  bool IsJoyconAndEAActiveLegstrap();
 
   // Dynamics:
   MotionState m_swing_state;
