@@ -108,10 +108,24 @@ void Nunchuk::BuildDesiredExtensionState(DesiredExtensionState* target_state)
   const auto transformation =
       GetRotationalMatrix(-m_tilt_state.angle) * GetRotationalMatrix(-m_swing_state.angle);
 
+  auto raw_accel = m_imu_accelerometer->GetState().value_or(Common::Vec3(0, 0, float(GRAVITY_ACCELERATION)));
+
+  /* I'd like to use my Ring Fit Adventure legstrap and my joycons
+   * to emulate the EA Active Sports Personal Trainer nunchuk and legstrap.
+   * 
+   * The RFA legstrap holds the device upside down and rotated 90 degrees
+   * relative to the EA Active legstrap, so this applies that transformation.
+  */
+  if (IsJoyconAndEAActiveLegstrap()) {
+    raw_accel.y *= -1;
+    Common::Vec3 rotated_accel = { raw_accel.z, raw_accel.y, raw_accel.x };
+    raw_accel = rotated_accel;
+  }
+
   Common::Vec3 accel =
       transformation *
       (m_swing_state.acceleration +
-       m_imu_accelerometer->GetState().value_or(Common::Vec3(0, 0, float(GRAVITY_ACCELERATION))));
+       raw_accel);
 
   // shake
   accel += m_shake_state.acceleration;
