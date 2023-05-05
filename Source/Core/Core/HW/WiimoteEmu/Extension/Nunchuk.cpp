@@ -62,7 +62,9 @@ Nunchuk::Nunchuk() : Extension1stParty(_trans("Nunchuk"))
 
   // hotkeys
   groups.emplace_back(m_hotkeys = new ControllerEmu::ModifySettingsButton("Custom"));
-  m_hotkeys->AddInput("Toggle Joycon Legstrap to EA Active Legstrap Conversion", true);
+  m_hotkeys->AddInput("Enable Legstrap Conversion", false);
+  m_hotkeys->AddInput("Disable Legstrap Conversion", false);
+  legstrapConversionEnabled = false;
 }
 
 void Nunchuk::BuildDesiredExtensionState(DesiredExtensionState* target_state)
@@ -209,7 +211,18 @@ ControllerEmu::ControlGroup* Nunchuk::GetGroup(NunchukGroup group)
 
 bool Nunchuk::IsJoyconAndEAActiveLegstrap() {
   m_hotkeys->UpdateState();
-  return m_hotkeys->GetSettingsModifier()[0];
+
+  // Pressing "Activate EA Legstrap"
+  if (m_hotkeys->GetSettingsModifier()[0]) {
+    legstrapConversionEnabled = true;
+  }
+
+  // Pressing "Activate Joycon Legstrap"
+  if (m_hotkeys->GetSettingsModifier()[1]) {
+    legstrapConversionEnabled = false;
+  }
+
+  return legstrapConversionEnabled;
 }
 
 void Nunchuk::DoState(PointerWrap& p)

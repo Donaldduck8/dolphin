@@ -191,6 +191,7 @@ private:
   ControllerEmu::ModifySettingsButton* m_hotkeys;
 
   bool IsJoyconAndEAActiveLegstrap();
+  bool legstrapConversionEnabled;
 
   // Dynamics:
   MotionState m_swing_state;
