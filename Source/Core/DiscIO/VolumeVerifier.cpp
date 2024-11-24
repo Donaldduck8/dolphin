@@ -472,8 +472,7 @@ std::vector<Partition> VolumeVerifier::CheckPartitions()
     AddProblem(Severity::High, Common::GetStringT("The install partition is missing."));
 
   if (ShouldHaveMasterpiecePartitions() &&
-      types.cend() ==
-          std::find_if(types.cbegin(), types.cend(), [](u32 type) { return type >= 0xFF; }))
+      types.cend() == std::ranges::find_if(types, [](u32 type) { return type >= 0xFF; }))
   {
     // i18n: This string is referring to a game mode in Super Smash Bros. Brawl called Masterpieces
     // where you play demos of NES/SNES/N64 games. Official translations:
@@ -578,17 +577,17 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
     const auto console_type =
         IsDebugSigned() ? IOS::HLE::IOSC::ConsoleType::RVT : IOS::HLE::IOSC::ConsoleType::Retail;
     IOS::HLE::Kernel ios(console_type);
-    const auto es = ios.GetES();
+    auto& es = ios.GetESCore();
     const std::vector<u8>& cert_chain = m_volume.GetCertificateChain(partition);
 
     if (IOS::HLE::IPC_SUCCESS !=
-            es->VerifyContainer(IOS::HLE::ESDevice::VerifyContainerType::Ticket,
-                                IOS::HLE::ESDevice::VerifyMode::DoNotUpdateCertStore,
-                                m_volume.GetTicket(partition), cert_chain) ||
+            es.VerifyContainer(IOS::HLE::ESCore::VerifyContainerType::Ticket,
+                               IOS::HLE::ESCore::VerifyMode::DoNotUpdateCertStore,
+                               m_volume.GetTicket(partition), cert_chain) ||
         IOS::HLE::IPC_SUCCESS !=
-            es->VerifyContainer(IOS::HLE::ESDevice::VerifyContainerType::TMD,
-                                IOS::HLE::ESDevice::VerifyMode::DoNotUpdateCertStore,
-                                m_volume.GetTMD(partition), cert_chain))
+            es.VerifyContainer(IOS::HLE::ESCore::VerifyContainerType::TMD,
+                               IOS::HLE::ESCore::VerifyMode::DoNotUpdateCertStore,
+                               m_volume.GetTMD(partition), cert_chain))
     {
       AddProblem(Severity::Low,
                  Common::FmtFormatT("The {0} partition is not correctly signed.", name));
@@ -720,10 +719,9 @@ bool VolumeVerifier::ShouldHaveChannelPartition() const
       "RFNE01", "RFNJ01", "RFNK01", "RFNP01", "RFNW01", "RFPE01", "RFPJ01", "RFPK01", "RFPP01",
       "RFPW01", "RGWE41", "RGWJ41", "RGWP41", "RGWX41", "RMCE01", "RMCJ01", "RMCK01", "RMCP01",
   };
-  DEBUG_ASSERT(std::is_sorted(channel_discs.cbegin(), channel_discs.cend()));
+  static_assert(std::ranges::is_sorted(channel_discs));
 
-  return std::binary_search(channel_discs.cbegin(), channel_discs.cend(),
-                            std::string_view(m_volume.GetGameID()));
+  return std::ranges::binary_search(channel_discs, m_volume.GetGameID());
 }
 
 bool VolumeVerifier::ShouldHaveInstallPartition() const
@@ -753,10 +751,9 @@ bool VolumeVerifier::ShouldBeDualLayer() const
       "SLSEXJ", "SLSP01", "SQIE4Q", "SQIP4Q", "SQIY4Q", "SR5E41", "SR5P41", "SUOE41", "SUOP41",
       "SVXX52", "SVXY52", "SX4E01", "SX4P01", "SZ3EGT", "SZ3PGT",
   };
-  DEBUG_ASSERT(std::is_sorted(dual_layer_discs.cbegin(), dual_layer_discs.cend()));
+  static_assert(std::ranges::is_sorted(dual_layer_discs));
 
-  return std::binary_search(dual_layer_discs.cbegin(), dual_layer_discs.cend(),
-                            std::string_view(m_volume.GetGameID()));
+  return std::ranges::binary_search(dual_layer_discs, m_volume.GetGameID());
 }
 
 void VolumeVerifier::CheckVolumeSize()
@@ -982,21 +979,21 @@ void VolumeVerifier::CheckMisc()
   if (m_volume.GetVolumeType() == Platform::WiiWAD)
   {
     IOS::HLE::Kernel ios(m_ticket.GetConsoleType());
-    const auto es = ios.GetES();
+    auto& es = ios.GetESCore();
     const std::vector<u8>& cert_chain = m_volume.GetCertificateChain(PARTITION_NONE);
 
     if (IOS::HLE::IPC_SUCCESS !=
-        es->VerifyContainer(IOS::HLE::ESDevice::VerifyContainerType::Ticket,
-                            IOS::HLE::ESDevice::VerifyMode::DoNotUpdateCertStore, m_ticket,
-                            cert_chain))
+        es.VerifyContainer(IOS::HLE::ESCore::VerifyContainerType::Ticket,
+                           IOS::HLE::ESCore::VerifyMode::DoNotUpdateCertStore, m_ticket,
+                           cert_chain))
     {
       // i18n: "Ticket" here is a kind of digital authorization to use a certain title (e.g. a game)
       AddProblem(Severity::Low, Common::GetStringT("The ticket is not correctly signed."));
     }
 
     if (IOS::HLE::IPC_SUCCESS !=
-        es->VerifyContainer(IOS::HLE::ESDevice::VerifyContainerType::TMD,
-                            IOS::HLE::ESDevice::VerifyMode::DoNotUpdateCertStore, tmd, cert_chain))
+        es.VerifyContainer(IOS::HLE::ESCore::VerifyContainerType::TMD,
+                           IOS::HLE::ESCore::VerifyMode::DoNotUpdateCertStore, tmd, cert_chain))
     {
       AddProblem(
           Severity::Medium,
@@ -1059,7 +1056,7 @@ void VolumeVerifier::SetUpHashing()
   else if (m_volume.GetVolumeType() == Platform::WiiDisc)
   {
     // Set up a DiscScrubber for checking whether blocks with errors are unused
-    m_scrubber.SetupScrub(&m_volume);
+    m_scrubber.SetupScrub(m_volume);
   }
 
   std::sort(m_groups.begin(), m_groups.end(),
@@ -1301,8 +1298,7 @@ void VolumeVerifier::Finish()
     {
       m_result.hashes.crc32 = std::vector<u8>(4);
       const u32 crc32_be = Common::swap32(m_crc32_context);
-      const u8* crc32_be_ptr = reinterpret_cast<const u8*>(&crc32_be);
-      std::copy(crc32_be_ptr, crc32_be_ptr + 4, m_result.hashes.crc32.begin());
+      std::memcpy(m_result.hashes.crc32.data(), &crc32_be, 4);
     }
 
     if (m_hashes_to_calculate.md5)

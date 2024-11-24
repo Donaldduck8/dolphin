@@ -26,6 +26,8 @@
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 
+#include "Core/Config/MainSettings.h"
+
 enum : u32
 {
   SECTOR_SIZE = 512,
@@ -513,9 +515,13 @@ bool SyncSDFolderToSDImage(const std::function<bool()>& cancelled, bool determin
   if (!CheckIfFATCompatible(root))
     return false;
 
-  u64 size = GetSize(root);
-  // Allocate a reasonable amount of free space
-  size += std::clamp(size / 2, MebibytesToBytes(512), GibibytesToBytes(8));
+  u64 size = Config::Get(Config::MAIN_WII_SD_CARD_FILESIZE);
+  if (size == 0)
+  {
+    size = GetSize(root);
+    // Allocate a reasonable amount of free space
+    size += std::clamp(size / 2, MebibytesToBytes(512), GibibytesToBytes(8));
+  }
   size = AlignUp(size, MAX_CLUSTER_SIZE);
 
   std::lock_guard lk(s_fatfs_mutex);
@@ -547,7 +553,7 @@ bool SyncSDFolderToSDImage(const std::function<bool()>& cancelled, bool determin
   }
 
   MKFS_PARM options = {};
-  options.fmt = FM_FAT32;
+  options.fmt = FM_FAT32 | FM_SFD;
   options.n_fat = 0;    // Number of FATs: automatic
   options.align = 1;    // Alignment of the data region (in sectors)
   options.n_root = 0;   // Number of root directory entries: automatic (and unused for FAT32)

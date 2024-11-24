@@ -16,6 +16,8 @@ class QComboBox;
 class QPushButton;
 class QSlider;
 class ToolTipComboBox;
+class ToolTipPushButton;
+enum class StereoMode : int;
 
 class EnhancementsWidget final : public QWidget
 {
@@ -30,14 +32,17 @@ private:
   void CreateWidgets();
   void ConnectWidgets();
   void AddDescriptions();
+  void ConfigureColorCorrection();
   void ConfigurePostProcessingShader();
-  void LoadPPShaders();
+  void LoadPPShaders(StereoMode stereo_mode);
 
   // Enhancements
   ConfigChoice* m_ir_combo;
   ToolTipComboBox* m_aa_combo;
   ToolTipComboBox* m_texture_filtering_combo;
+  ToolTipComboBox* m_output_resampling_combo;
   ToolTipComboBox* m_pp_effect;
+  ToolTipPushButton* m_configure_color_correction;
   QPushButton* m_configure_pp_effect;
   ConfigBool* m_scaled_efb_copy;
   ConfigBool* m_per_pixel_lighting;
@@ -46,12 +51,14 @@ private:
   ConfigBool* m_force_24bit_color;
   ConfigBool* m_disable_copy_filter;
   ConfigBool* m_arbitrary_mipmap_detection;
+  ConfigBool* m_hdr;
 
   // Stereoscopy
   ConfigChoice* m_3d_mode;
   ConfigSlider* m_3d_depth;
   ConfigSlider* m_3d_convergence;
   ConfigBool* m_3d_swap_eyes;
+  ConfigBool* m_3d_per_eye_resolution;
 
   int m_msaa_modes;
   bool m_block_save;

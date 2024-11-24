@@ -1,5 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+// GPU driver implementation partially based on:
+// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.features.settings.ui
 
 import android.content.Context
@@ -10,10 +14,10 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.View
 import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
-import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProvider
@@ -30,7 +34,6 @@ import org.dolphinemu.dolphinemu.utils.FileBrowserHelper
 import org.dolphinemu.dolphinemu.utils.InsetsHelper
 import org.dolphinemu.dolphinemu.utils.SerializableHelper.serializable
 import org.dolphinemu.dolphinemu.utils.ThemeHelper.enableScrollTint
-import org.dolphinemu.dolphinemu.utils.ThemeHelper.setNavigationBarColor
 import org.dolphinemu.dolphinemu.utils.ThemeHelper.setTheme
 
 class SettingsActivity : AppCompatActivity(), SettingsActivityView {
@@ -49,6 +52,7 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(this)
+        enableEdgeToEdge()
 
         super.onCreate(savedInstanceState)
 
@@ -62,8 +66,6 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
 
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding!!.root)
-
-        WindowCompat.setDecorFitsSystemWindows(window, false)
 
         val launcher = intent
         var gameID = launcher.getStringExtra(ARG_GAME_ID)
@@ -165,8 +167,21 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
         super.onActivityResult(requestCode, resultCode, result)
 
         // If the user picked a file, as opposed to just backing out.
-        if (resultCode == RESULT_OK) {
-            if (requestCode != MainPresenter.REQUEST_DIRECTORY) {
+        if (resultCode != RESULT_OK) {
+            return
+        }
+
+        when (requestCode) {
+            MainPresenter.REQUEST_DIRECTORY -> {
+                val path = FileBrowserHelper.getSelectedPath(result)
+                fragment!!.adapter!!.onFilePickerConfirmation(path!!)
+            }
+
+            MainPresenter.REQUEST_GAME_FILE,
+            MainPresenter.REQUEST_SD_FILE,
+            MainPresenter.REQUEST_WAD_FILE,
+            MainPresenter.REQUEST_WII_SAVE_FILE,
+            MainPresenter.REQUEST_NAND_BIN_FILE -> {
                 val uri = canonicalizeIfPossible(result!!.data!!)
                 val validExtensions: Set<String> =
                     if (requestCode == MainPresenter.REQUEST_GAME_FILE) FileBrowserHelper.GAME_EXTENSIONS else FileBrowserHelper.RAW_EXTENSION
@@ -178,9 +193,6 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
                     contentResolver.takePersistableUriPermission(uri, takeFlags)
                     fragment!!.adapter!!.onFilePickerConfirmation(uri.toString())
                 }
-            } else {
-                val path = FileBrowserHelper.getSelectedPath(result)
-                fragment!!.adapter!!.onFilePickerConfirmation(path!!)
             }
         }
     }
@@ -275,10 +287,6 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
             )
 
             InsetsHelper.applyNavbarWorkaround(insets.bottom, binding!!.workaroundView)
-            setNavigationBarColor(
-                this,
-                MaterialColors.getColor(binding!!.appbarSettings, R.attr.colorSurface)
-            )
 
             windowInsets
         }

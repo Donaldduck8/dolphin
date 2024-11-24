@@ -10,6 +10,8 @@
     <OutDir>$(IntDir)bin\</OutDir>
     <!--Set link /INCREMENTAL:NO to remove some entropy from builds (assists with deterministic build)-->
     <LinkIncremental>false</LinkIncremental>
+    <!--Disable vcpkg to avoid accidentally linking to its packages-->
+    <VcpkgEnabled>false</VcpkgEnabled>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <!--ClCompile Base-->
@@ -30,6 +32,7 @@
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <!--Enable latest C++ standard-->
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <BuildStlModules>false</BuildStlModules>
       <!--Enable Standard Conformance-->
       <ConformanceMode>true</ConformanceMode>
       <!--Enforce some behaviors as standards-conformant when they don't default as such.-->

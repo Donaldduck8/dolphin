@@ -157,8 +157,9 @@ VkDescriptorPool CommandBufferManager::CreateDescriptorPool(u32 max_descriptor_s
   const std::array<VkDescriptorPoolSize, 5> pool_sizes{{
       {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, max_descriptor_sets * 3},
       {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-       max_descriptor_sets * (VideoCommon::MAX_PIXEL_SHADER_SAMPLERS + NUM_COMPUTE_SHADER_SAMPLERS +
-                              NUM_UTILITY_PIXEL_SAMPLERS)},
+       max_descriptor_sets *
+           (VideoCommon::MAX_PIXEL_SHADER_SAMPLERS + VideoCommon::MAX_COMPUTE_SHADER_SAMPLERS +
+            NUM_UTILITY_PIXEL_SAMPLERS)},
       {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, max_descriptor_sets * 2},
       {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, max_descriptor_sets * 3},
       {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, max_descriptor_sets * 1},
@@ -299,7 +300,7 @@ void CommandBufferManager::WaitForCommandBufferCompletion(u32 index)
 }
 
 void CommandBufferManager::SubmitCommandBuffer(bool submit_on_worker_thread,
-                                               bool wait_for_completion,
+                                               bool wait_for_completion, bool advance_to_next_frame,
                                                VkSwapchainKHR present_swap_chain,
                                                uint32_t present_image_index)
 {
@@ -333,7 +334,7 @@ void CommandBufferManager::SubmitCommandBuffer(bool submit_on_worker_thread,
       WaitForCommandBufferCompletion(m_current_cmd_buffer);
   }
 
-  if (present_swap_chain != VK_NULL_HANDLE)
+  if (advance_to_next_frame)
   {
     m_current_frame = (m_current_frame + 1) % NUM_FRAMES_IN_FLIGHT;
 

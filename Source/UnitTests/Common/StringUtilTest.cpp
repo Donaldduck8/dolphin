@@ -7,15 +7,6 @@
 
 #include "Common/StringUtil.h"
 
-TEST(StringUtil, JoinStrings)
-{
-  EXPECT_EQ("", JoinStrings({}, ", "));
-  EXPECT_EQ("a", JoinStrings({"a"}, ","));
-  EXPECT_EQ("ab", JoinStrings({"a", "b"}, ""));
-  EXPECT_EQ("a, bb, c", JoinStrings({"a", "bb", "c"}, ", "));
-  EXPECT_EQ("???", JoinStrings({"?", "?"}, "?"));
-}
-
 TEST(StringUtil, StringPopBackIf)
 {
   std::string abc = "abc";
@@ -86,7 +77,7 @@ TEST(StringUtil, GetEscapedHtml)
   static constexpr auto no_escape_needed =
       "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
       "!@#$%^*()-_=+,./?;:[]{}| \\\t\n";
-  EXPECT_EQ(GetEscapedHtml(no_escape_needed), no_escape_needed);
-  EXPECT_EQ(GetEscapedHtml("&<>'\""), "&amp;&lt;&gt;&apos;&quot;");
-  EXPECT_EQ(GetEscapedHtml("&&&"), "&amp;&amp;&amp;");
+  EXPECT_EQ(Common::GetEscapedHtml(no_escape_needed), no_escape_needed);
+  EXPECT_EQ(Common::GetEscapedHtml("&<>'\""), "&amp;&lt;&gt;&apos;&quot;");
+  EXPECT_EQ(Common::GetEscapedHtml("&&&"), "&amp;&amp;&amp;");
 }
