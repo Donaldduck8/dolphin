@@ -4,6 +4,7 @@
 #pragma once
 
 #include <memory>
+
 #include "VideoBackends/D3D12/D3D12StreamBuffer.h"
 #include "VideoBackends/D3D12/DescriptorHeapManager.h"
 #include "VideoCommon/VertexManagerBase.h"
@@ -14,7 +15,7 @@ class VertexManager final : public VertexManagerBase
 {
 public:
   VertexManager();
-  ~VertexManager();
+  ~VertexManager() override;
 
   bool Initialize() override;
 

@@ -29,7 +29,6 @@
 #include "DolphinQt/Config/ToolTipControls/ToolTipComboBox.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipPushButton.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
-#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
 
@@ -88,10 +87,9 @@ void GeneralPane::CreateLayout()
 void GeneralPane::OnEmulationStateChanged(Core::State state)
 {
   const bool running = state != Core::State::Uninitialized;
-  const bool hardcore = AchievementManager::GetInstance().IsHardcoreModeActive();
 
   m_checkbox_dualcore->setEnabled(!running);
-  m_checkbox_cheats->setEnabled(!running && !hardcore);
+  m_checkbox_cheats->setEnabled(!running);
   m_checkbox_override_region_settings->setEnabled(!running);
 #ifdef USE_DISCORD_PRESENCE
   m_checkbox_discord_presence->setEnabled(!running);
@@ -116,7 +114,7 @@ void GeneralPane::ConnectLayout()
   }
 
   // Advanced
-  connect(m_combobox_speedlimit, &QComboBox::currentIndexChanged, [this]() {
+  connect(m_combobox_speedlimit, &QComboBox::currentIndexChanged, [this] {
     Config::SetBaseOrCurrent(Config::MAIN_EMULATION_SPEED,
                              m_combobox_speedlimit->currentIndex() * 0.1f);
     Config::Save();
@@ -362,7 +360,6 @@ void GeneralPane::GenerateNewIdentity()
   message_box.setIcon(QMessageBox::Information);
   message_box.setWindowTitle(tr("Identity Generation"));
   message_box.setText(tr("New identity generated."));
-  SetQWidgetWindowDecorations(&message_box);
   message_box.exec();
 }
 #endif

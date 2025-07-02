@@ -58,6 +58,7 @@ signals:
   void RequestPPCComparison(u32 address, bool translate_address);
   void ShowMemory(u32 address);
   void UpdateCodeWidget();
+  void ActivateSearch();
 
 private:
   enum class ReplaceWith
@@ -86,13 +87,15 @@ private:
   void OnCopyFunction();
   void OnCopyCode();
   void OnCopyHex();
-  void OnRenameSymbol();
   void OnSelectionChanged();
-  void OnSetSymbolSize();
-  void OnSetSymbolEndAddress();
   void OnRunToHere();
   void OnAddFunction();
+  void OnEditSymbol();
+  void OnDeleteSymbol();
+  void OnAddNote();
   void OnPPCComparison();
+  void OnEditNote();
+  void OnDeleteNote();
   void OnInsertBLR();
   void OnInsertNOP();
   void OnReplaceInstruction();

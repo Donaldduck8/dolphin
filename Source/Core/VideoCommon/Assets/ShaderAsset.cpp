@@ -54,8 +54,7 @@ bool ParseNumeric(const CustomAssetLibrary::AssetID& asset_id, const picojson::v
       return false;
     }
 
-    if (!std::all_of(json_data.begin(), json_data.end(),
-                     [](const picojson::value& v) { return v.is<double>(); }))
+    if (!std::ranges::all_of(json_data, &picojson::value::is<double>))
     {
       ERROR_LOG_FMT(VIDEO,
                     "Asset id '{}' shader has attribute '{}' where "
@@ -440,7 +439,7 @@ CustomAssetLibrary::LoadInfo PixelShaderAsset::LoadImpl(const CustomAssetLibrary
 {
   auto potential_data = std::make_shared<PixelShaderData>();
   const auto loaded_info = m_owning_library->LoadPixelShader(asset_id, potential_data.get());
-  if (loaded_info.m_bytes_loaded == 0)
+  if (loaded_info.bytes_loaded == 0)
     return {};
   {
     std::lock_guard lk(m_data_lock);

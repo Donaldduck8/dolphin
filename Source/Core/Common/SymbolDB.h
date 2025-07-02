@@ -29,6 +29,16 @@ struct SCall
   u32 call_address;
 };
 
+struct Note
+{
+  std::string name;
+  u32 address = 0;
+  u32 size = 0;
+  int layer = 0;
+
+  Note() = default;
+};
+
 struct Symbol
 {
   enum class Type
@@ -44,6 +54,7 @@ struct Symbol
 
   std::string name;
   std::string function_name;   // stripped function name
+  std::string object_name;     // name of object/source file symbol belongs to
   std::vector<SCall> callers;  // addresses of functions that call this function
   std::vector<SCall> calls;    // addresses of functions that are called by this function
   u32 hash = 0;                // use for HLE function finding
@@ -70,6 +81,7 @@ class SymbolDB
 {
 public:
   using XFuncMap = std::map<u32, Symbol>;
+  using XNoteMap = std::map<u32, Note>;
   using XFuncPtrMap = std::map<u32, std::set<Symbol*>>;
 
   SymbolDB();
@@ -85,14 +97,17 @@ public:
   std::vector<Symbol*> GetSymbolsFromHash(u32 hash);
 
   const XFuncMap& Symbols() const { return m_functions; }
+  const XNoteMap& Notes() const { return m_notes; }
   XFuncMap& AccessSymbols() { return m_functions; }
   bool IsEmpty() const;
-  void Clear(const char* prefix = "");
+  bool Clear(const char* prefix = "");
   void List();
   void Index();
 
 protected:
   XFuncMap m_functions;
+  XNoteMap m_notes;
   XFuncPtrMap m_checksum_to_function;
+  std::string m_map_name;
 };
 }  // namespace Common
